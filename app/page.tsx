@@ -35,22 +35,15 @@ export default function Home() {
       if (!data.result) throw new Error('응답 데이터 없음')
 
       setMessages([...newMessages, data.result])
-    } catch (error) {
+    } catch (error: any) {
       console.error('🚨 오류 발생:', error)
-      const errorMessages = [
-        '앗, 나 지금 좀 멍했어. 다시 말해줄래? 🙏',
-        '헷갈릴 수도 있어. 조금만 더 설명해줄래? 🤔',
-        '어? 그 부분은 내가 잘 모르겠어. 다른 부분에서 도와줄까? 🙃',
-        '오, 그거 정말 어려운 질문이네! 좀 더 얘기해볼래? 😅'
-      ]
 
-      const randomMessage = errorMessages[Math.floor(Math.random() * errorMessages.length)]
-
+      // 백엔드에서 받은 오류 메시지 출력
       setMessages([
         ...newMessages,
         {
           role: 'assistant',
-          content: randomMessage
+          content: error.message, // 백엔드에서 전달한 오류 메시지를 사용
         },
       ])
     } finally {
