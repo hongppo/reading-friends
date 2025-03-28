@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
   const [messages, setMessages] = useState<any[]>([])
@@ -8,46 +8,55 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
+  // 메시지가 추가되면 자동으로 스크롤 내려주기
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
   const sendMessage = async () => {
     if (!input.trim()) return
-  
+
     const newMessages = [...messages, { role: 'user', content: input }]
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-  
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: newMessages }),
       })
-  
+
       if (!res.ok) throw new Error('API 응답 오류')
-  
+
       const data = await res.json()
-  
-      if (!data?.result?.content) throw new Error('응답 데이터 없음')
-  
+
+      if (!data.result) throw new Error('응답 데이터 없음')
+
       setMessages([...newMessages, data.result])
     } catch (error) {
       console.error('🚨 오류 발생:', error)
+      const errorMessages = [
+        '앗, 나 지금 좀 멍했어. 다시 말해줄래? 🙏',
+        '헷갈릴 수도 있어. 조금만 더 설명해줄래? 🤔',
+        '어? 그 부분은 내가 잘 모르겠어. 다른 부분에서 도와줄까? 🙃',
+        '오, 그거 정말 어려운 질문이네! 좀 더 얘기해볼래? 😅'
+      ]
+
+      const randomMessage = errorMessages[Math.floor(Math.random() * errorMessages.length)]
+
       setMessages([
         ...newMessages,
         {
           role: 'assistant',
-          content: '앗, 나 지금 좀 멍했어 ㅋㅋ 다시 말해줄래? 🙏',
+          content: randomMessage
         },
       ])
     } finally {
       setLoading(false)
     }
   }
-
-  // ✅ 메시지가 생길 때마다 스크롤 아래로 이동
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
 
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
