@@ -10,20 +10,38 @@ export default function Home() {
 
   const sendMessage = async () => {
     if (!input.trim()) return
+  
     const newMessages = [...messages, { role: 'user', content: input }]
     setMessages(newMessages)
     setInput('')
     setLoading(true)
-
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: newMessages })
-    })
-
-    const data = await res.json()
-    setMessages([...newMessages, data.result])
-    setLoading(false)
+  
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: newMessages }),
+      })
+  
+      if (!res.ok) throw new Error('API 응답 오류')
+  
+      const data = await res.json()
+  
+      if (!data?.result?.content) throw new Error('응답 데이터 없음')
+  
+      setMessages([...newMessages, data.result])
+    } catch (error) {
+      console.error('🚨 오류 발생:', error)
+      setMessages([
+        ...newMessages,
+        {
+          role: 'assistant',
+          content: '앗, 나 지금 좀 멍했어 ㅋㅋ 다시 말해줄래? 🙏',
+        },
+      ])
+    } finally {
+      setLoading(false)
+    }
   }
 
   // ✅ 메시지가 생길 때마다 스크롤 아래로 이동
